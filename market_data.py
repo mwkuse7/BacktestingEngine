@@ -19,3 +19,16 @@ def load_data(ticker: str, start: str, end: str) -> pd.DataFrame:
 
     # Sort dataframe rows by date (oldest to newest)
     return df.sort_index()
+
+# Load CSV file from a given file path and return a Pandas DataFrame
+def load_csv(path: str) -> pd.DataFrame:
+    # Read CSV file into DataFrame, convert 'Date' column to datetime, and set it as the row index
+    df = pd.read_csv(path, parse_dates=['Date'], index_col='Date')
+
+    # Drop rows with missing values
+    df = df.dropna()
+
+    # Sort rows by date (oldest to newest)
+    df = df.sort_index()
+
+    return df
