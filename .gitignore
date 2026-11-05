@@ -2,5 +2,5 @@
 .venv/
 venv/
 
-# Ignore cached Python files
+# Ignore cached Python files and modules
 __pycache__/
