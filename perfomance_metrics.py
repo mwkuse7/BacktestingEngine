@@ -30,7 +30,7 @@ def compute_metrics(equity: pd.Series, periods_per_year: int = 252, risk_free_ra
     # CAGR: Annualized growth rate
     # Volatility: Annualized standard deviation of daily returns
     # Sharpe Ratio: How much you earned above a safe investment per unit of risk taken
-    # Max Drawdown: 
+    # Max Drawdown: Largest drop in value from highest peak to lowest trough before a new peak is reached
     return {
         'Total Return': total_return,
         'CAGR': cagr,
