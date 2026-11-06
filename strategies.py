@@ -33,5 +33,5 @@ class SMACrossover(Strategy):
         short_ma = close.iloc[-self.short_window:].mean()
         long_ma = close.iloc[-self.long_window:].mean()
 
-        # If short-term moving average above long-term moving average, invest all available cash in stock otherwise return 0.0
+        # If short-term moving average above long-term moving average, invest all portfolio equity otherwise sell all shares
         return 1.0 if short_ma > long_ma else 0.0
