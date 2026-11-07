@@ -26,7 +26,7 @@ class Broker:
 
         # Calculate change in shares to buy/sell, return if no transaction is needed
         delta = target_shares - portfolio.shares
-        if delta < 1e-6:
+        if abs(delta) < 1e-6:
             return
 
         # Buy shares if delta is positive, sell shares if delta is negative
