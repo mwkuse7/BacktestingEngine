@@ -10,7 +10,7 @@ def compute_metrics(equity: pd.Series, periods_per_year: int = 252, risk_free_ra
     years = len(returns) / periods_per_year
 
     # Total return expressed as percentage
-    total_return = returns.iloc[-1] / returns.iloc[0] - 1
+    total_return = equity.iloc[-1] / equity.iloc[0] - 1
 
     # Compute Compound Annual Growth Rate (CAGR) (GROWTHFACTOR ^ (1/NUMYEARS) - 1)
     cagr = (1 + total_return) ** (1 / years) - 1
