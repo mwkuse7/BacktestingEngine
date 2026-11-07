@@ -11,7 +11,7 @@ class BacktestEngine:
     def run(self) -> pd.DataFrame:
         pending_trade = None
 
-        # Iterate through the historical data for a ticker and execute trades based on chosen strategy
+        # Iterate through the historical data for ticker and execute trades based on chosen strategy
         for i, (timestamp, bar) in enumerate(self.data.iterrows()):
             # Fill order placed at previous close at current bar's open price
             if pending_trade is not None:
