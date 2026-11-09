@@ -22,7 +22,7 @@ buy_hold = data['Close'] / data['Close'].iloc[0] * INITIAL_CASH
 
 # Create DataFrame comparing results of strategies
 results = pd.DataFrame({
-    'SMACrossover': compute_metrics(history['equity']),
+    'Simple-Mean-Average Crossover': compute_metrics(history['equity']),
     'Buy-and-Hold': compute_metrics(buy_hold), 
 }).round(3)
 
@@ -36,7 +36,7 @@ print('Time in market: ', round((history['shares'] > 0).mean(), 3))
 fig, ax = plt.subplots(figsize=(10, 5))
 
 # Plot equity of strategies on chart
-history['equity'].plot(ax=ax, label='SMACrossover')
+history['equity'].plot(ax=ax, label='SMA Crossover')
 buy_hold.plot(ax=ax, label='Buy & Hold')
 
 # Label y-axis
