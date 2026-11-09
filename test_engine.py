@@ -29,7 +29,7 @@ def test_orders_fill_on_open():
     data = create_data([100, 110, 120, 130])
 
     # Create Engine
-    engine = BacktestEngine(data, InvestAll, Broker(0, 0), initial_cash=10_000)
+    engine = BacktestEngine(data, InvestAll(), Broker(0, 0), 10_000)
     engine.run()
 
     first = engine.portfolio.trades[0]
@@ -39,7 +39,7 @@ def test_orders_fill_on_open():
 # Make sure account value doesn't change if stock price doesn't change
 def test_constant_prices_constant_equity():
     data = create_data([100] * 5)
-    engine = BacktestEngine(data, InvestAll, Broker(0, 0), initial_cash=10_000)
+    engine = BacktestEngine(data, InvestAll(), Broker(0, 0), 10_000)
     history = engine.run()
 
     # Check if final account value is within .000001 of starting account value
@@ -50,7 +50,7 @@ def test_transaction_costs_reduce_equity():
     data = create_data([100] * 5)
 
     # Create engine with a broker charging 1% commission and account for 1% slippage
-    engine = BacktestEngine(data, InvestAll, Broker(0.01, 0.01), initial_cash=10_000)
+    engine = BacktestEngine(data, InvestAll(), Broker(0.01, 0.01), 10_000)
     history = engine.run()
 
     # Constant stock price and transaction costs result in a lower portfolio value than the initial value
