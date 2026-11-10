@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from broker import Broker
 from engine import BacktestEngine
 from market_data import load_data
-from perfomance_metrics import compute_metrics
+from perfomance_metrics import compute_metrics, round_trips
 from strategies import SMACrossover
 
 INITIAL_CASH = 100_000
@@ -26,11 +26,26 @@ results = pd.DataFrame({
     'Buy-and-Hold': compute_metrics(buy_hold), 
 }).round(3)
 
+# Calculate Round-Trip Trades and Profit/Loss Figures
+profit_loss = pd.Series(round_trips(engine.portfolio.trades))
+wins, losses = profit_loss[profit_loss > 0], profit_loss[profit_loss <= 0]
+
 print(results)
 
+print()
+
 # Trading activity details
-print('# of Trades: ', len(engine.portfolio.trades))
-print('Time in market: ', round((history['shares'] > 0).mean(), 3))
+print('# of Trades:', len(engine.portfolio.trades))
+print('Time in market:', round((history['shares'] > 0).mean(), 3))
+
+print()
+
+# Profits/Losses on Round-Trip Trades
+print('Round-Trips:', len(profit_loss))
+print('Win Rate:', round(len(wins) / len(profit_loss), 3))
+print('Average Win:', round(wins.mean(), 3))
+print('Average Loss:', round(losses.mean(), 3))
+print('Profit Factor:', round(wins.sum() / abs(losses.sum()), 3))
 
 # Create blank chart (10 x 5) w/ one set of axes
 fig, ax = plt.subplots(figsize=(10, 5))
