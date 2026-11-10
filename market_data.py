@@ -35,3 +35,22 @@ def load_csv(path: str) -> pd.DataFrame:
     df = df.sort_index()
 
     return df
+
+# Load stock data for all tickers in the list "tickers"
+def load_all_tickers(tickers: list[str], start, end):
+    # Create dictionary where each key is a ticker with a DataFrame as its value
+    data_frames = {t: load_data(t, start, end) for t in tickers}
+
+    # Create collection of dates (DatetimeIndex) from the DataFrame of the first ticker
+    common_dates = data_frames[tickers[0]].index
+
+    # Keep only the rows where the date appears in all tickers
+    for df in data_frames:
+        common_dates = common_dates.intersection(df.index)
+
+    # Sort DatetimeIndex by date in ascending order
+    common_dates = common_dates.sort_values()
+
+    # Return dictionary of DataFrames with sorted dates
+    return {t: df.loc[common_dates] for t, df in data_frames.items()}
+
