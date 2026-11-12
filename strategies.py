@@ -7,7 +7,7 @@ class Strategy(ABC):
     # history: DataFrame containing all bars up to and including the current one
     # Returns target weight between 0.0 and 1.0, or None for no change
     @abstractmethod
-    def on_bar(self, history: pd.DataFrame, portfolio) -> float | None:
+    def on_bar(self, history: dict[str, pd.DataFrame], portfolio) -> dict[str, float] | None:
         pass
 
 
@@ -24,14 +24,20 @@ class SMACrossover(Strategy):
         self.long_window = long_window
 
     def on_bar(self, history, portfolio):
-        # If moving averages cannot be calculated due to insufficient data, return None to leave position unchanged
-        if len(history) < self.long_window:
-            return None
+        weights = {}
 
-        # Calculate short-term and long-term moving averages of the closing price
-        close = history['Close']
-        short_ma = close.iloc[-self.short_window:].mean()
-        long_ma = close.iloc[-self.long_window:].mean()
+        for ticker, df in history.items():
+            # Not enough bars to compute the long window
+            if len(df) < self.long_window:
+                continue
 
-        # If short-term moving average above long-term moving average, invest all portfolio equity otherwise sell all shares
-        return 1.0 if short_ma > long_ma else 0.0
+            # Calculate short-term and long-term moving averages of the closing price
+            close = df['Close']
+            short_ma = close.iloc[-self.short_window:].mean()
+            long_ma = close.iloc[-self.long_window:].mean()
+
+            # Decide to buy or sell for each ticker depending on moving averages
+            weights[ticker] = 1.0 if short_ma > long_ma else 0.0
+
+        # Return None if moving averages cannot be calculated due to insufficient data
+        return weights or None
