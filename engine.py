@@ -8,7 +8,7 @@ class BacktestEngine:
         self.strategy = strategy
         self.broker = broker
         self.portfolio = Portfolio(initial_cash, self.tickers)
-        self.index = data[self.symbols[0]].index
+        self.index = data[self.tickers[0]].index
         
         # Check to make sure the indexes/dates match up for all tickers (load_all_tickers() should already do this)
         for ticker, df in data.items():
@@ -23,7 +23,7 @@ class BacktestEngine:
             bars = {t: df.iloc[i] for t, df in self.data.items()}
 
             # Fill orders placed at previous close at all current bar's open prices
-            if pending_trade is not None:
+            if pending_trades is not None:
                 self.broker.execute_trade(self.portfolio, pending_trades, bars, timestamp)
 
                 # After filling the order, reset pending_trades
@@ -35,7 +35,7 @@ class BacktestEngine:
 
             # Have strategy decide whether to buy, sell, or hold at the next day's open for each ticker in portfolio
             history = {t: df.iloc[:i + 1] for t, df in self.data.items()}
-            pending_trade = self.strategy.on_bar(history, self.portfolio)
+            pending_trades = self.strategy.on_bar(history, self.portfolio)
 
         # Return the portfolio's trading history as a Pandas DataFrame
         return self.portfolio.history()
