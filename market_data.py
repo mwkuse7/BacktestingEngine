@@ -45,7 +45,7 @@ def load_all_tickers(tickers: list[str], start, end):
     common_dates = data_frames[tickers[0]].index
 
     # Keep only the rows where the date appears in all tickers
-    for df in data_frames:
+    for df in data_frames.values():
         common_dates = common_dates.intersection(df.index)
 
     # Sort DatetimeIndex by date in ascending order
