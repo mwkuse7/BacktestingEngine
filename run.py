@@ -3,22 +3,24 @@ import matplotlib.pyplot as plt
 
 from broker import Broker
 from engine import BacktestEngine
-from market_data import load_data
-from perfomance_metrics import compute_metrics, round_trips
+from market_data import load_all_tickers
+from perfomance_metrics import compute_metrics, round_trips, summarize_pnl
 from strategies import SMACrossover
+from portfolio import Portfolio
 
 INITIAL_CASH = 100_000
 
-# Load historical market data for a ticker as a Pandas DataFrame (1 bar per day)
-data = load_data('SPY', '2015-01-01', '2024-12-31')
+# Load historical market data for multiple tickers as a dictionary of Pandas DataFrames (1 bar per day)
+tickers = ['SPY', 'QQQ', 'TLT']
+data = load_all_tickers(tickers, '2015-01-01', '2024-12-31')
 
 # Create and run engine to execute trading strategy and return details for every bar
 engine = BacktestEngine(data, SMACrossover(20, 50), Broker(), INITIAL_CASH)
 history = engine.run()
+positions = engine.portfolio.positions()
 
-# Create DataFrame with trade results for a buy-and-hold strategy to use as benchmark
 # Divide every close by the first close and multiply by cash for growth relative to intial investment
-buy_hold = data['Close'] / data['Close'].iloc[0] * INITIAL_CASH
+buy_hold = sum(df['Close'] / df['Close'].iloc[0] for df in data.values()) / len(data) * INITIAL_CASH
 
 # Create DataFrame comparing results of strategies
 results = pd.DataFrame({
@@ -26,26 +28,23 @@ results = pd.DataFrame({
     'Buy-and-Hold': compute_metrics(buy_hold), 
 }).round(3)
 
-# Calculate Round-Trip Trades and Profit/Loss Figures
-profit_loss = pd.Series(round_trips(engine.portfolio.trades))
-wins, losses = profit_loss[profit_loss > 0], profit_loss[profit_loss <= 0]
-
 print(results)
 
 print()
 
 # Trading activity details
-print('# of Trades:', len(engine.portfolio.trades))
-print('Time in market:', round((history['shares'] > 0).mean(), 3))
+trade_counts = pd.Series([trade.ticker for trade in engine.portfolio.trades]).value_counts()
+print('Trades per Ticker:', trade_counts)
+print('Time in market:', round((positions > 0).mean(), 3))
 
 print()
 
 # Profits/Losses on Round-Trip Trades
-print('Round-Trips:', len(profit_loss))
-print('Win Rate:', round(len(wins) / len(profit_loss), 3))
-print('Average Win:', round(wins.mean(), 3))
-print('Average Loss:', round(losses.mean(), 3))
-print('Profit Factor:', round(wins.sum() / abs(losses.sum()), 3))
+trips = round_trips(engine.portfolio.trades)
+
+if not trips.empty: 
+    print(summarize_pnl(trips['pnl']).round(3))
+    print(trips.groupby('ticker')['pnl'].apply(summarize_pnl).unstack().round(3))
 
 # Create blank chart (10 x 5) w/ one set of axes
 fig, ax = plt.subplots(figsize=(10, 5))
