@@ -17,7 +17,7 @@ class Broker:
 
         # Calculate target_weights to prevent short selling and leverage positions
         target_weights = {t: min(max(w, 0.0), 1.0) for t, w in target_weights.items()}
-        total_weight = sum(target_weights.values)
+        total_weight = sum(target_weights.values())
         
         # Scale weights of each position, so total equity is greater than shares being purchased
         if total_weight > 1.0:
@@ -43,7 +43,7 @@ class Broker:
                 self._buy(portfolio, ticker, delta, reference_prices[ticker], timestamp)
         
 
-    def _buy(self, portfolio, ticker, delta, shares, reference_price, timestamp):
+    def _buy(self, portfolio, ticker, shares, reference_price, timestamp):
         # Calculate price to buy shares, including slippage to account for market volatility
         fill_price = reference_price * (1 + self.slippage)
 
@@ -51,7 +51,7 @@ class Broker:
         affordable_shares = portfolio.cash / (fill_price * (1 + self.commission_rate))
         if not self.fractional:
             affordable_shares = math.floor(affordable_shares)
-        shares = min(delta, affordable_shares)
+        shares = min(shares, affordable_shares)
         if shares <= 0:
             return
 
@@ -65,9 +65,9 @@ class Broker:
         # Record trade in portfolio
         portfolio.trades.append(Trade(timestamp, trade_type, ticker, shares, fill_price, commission))
         
-    def _sell(self, portfolio, ticker, delta, shares, reference_price, timestamp):
+    def _sell(self, portfolio, ticker, shares, reference_price, timestamp):
         # Never sell more shares than currently held in the portfolio, return if not enough shares
-        shares = min(delta, portfolio.shares)
+        shares = min(shares, portfolio.shares[ticker])
         if shares <= 0:
             return
 
