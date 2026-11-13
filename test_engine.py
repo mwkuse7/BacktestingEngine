@@ -7,7 +7,14 @@ from strategies import Strategy
 # Simple strategy used to test BacktestEngine and Broker
 class InvestAll(Strategy):
     def on_bar(self, history, portfolio):
-        return 1.0
+        return {ticker: 1.0 for ticker in history}
+
+# Hold 'A' for the first 3 days then switch to 'B'
+class RotateHoldingsAfterThree(Strategy):
+    def on_bar(self, history, portfolio):
+        if len(history['A']) < 3:
+            return {'A': 1.0, 'B': 0.0}
+        return {'A': 0.0, 'B': 1.0}
 
 def create_data(prices):
     # Create range of dates with len(prices) periods, starting at the first parameter, using only business days
@@ -23,22 +30,26 @@ def create_data(prices):
     }, index=index
     )
 
+# ----- Tests for portfolio with a single ticker ------ #
+
 # Make sure trade is not executed on first bar and fill on open price
 def test_orders_fill_on_open():
     # Create DataFrame with fixed values
-    data = create_data([100, 110, 120, 130])
+    data = {'TEST': create_data([100, 110, 120, 130])}
 
     # Create Engine
     engine = BacktestEngine(data, InvestAll(), Broker(0, 0), 10_000)
     engine.run()
 
     first = engine.portfolio.trades[0]
-    assert first.timestamp == data.index[1]
+    assert first.ticker == 'TEST'
+    assert first.timestamp == data['TEST'].index[1]
     assert first.price == 110
 
 # Make sure account value doesn't change if stock price doesn't change
 def test_constant_prices_constant_equity():
-    data = create_data([100] * 5)
+    data = {'TEST': create_data([100] * 5)}
+
     engine = BacktestEngine(data, InvestAll(), Broker(0, 0), 10_000)
     history = engine.run()
 
@@ -47,7 +58,7 @@ def test_constant_prices_constant_equity():
 
 # Make sure commission costs and slippage correctly reduces purchasable shares and total equity
 def test_transaction_costs_reduce_equity():
-    data = create_data([100] * 5)
+    data = {'TEST': create_data([100] * 5)}
 
     # Create engine with a broker charging 1% commission and account for 1% slippage
     engine = BacktestEngine(data, InvestAll(), Broker(0.01, 0.01), 10_000)
@@ -58,4 +69,4 @@ def test_transaction_costs_reduce_equity():
 
 
 
-# TODO: TEST LOGIC FOR SELLING SHARES
+# TODO: TEST LOGIC FOR WORKING WITH MULTIPLE TICKERS
