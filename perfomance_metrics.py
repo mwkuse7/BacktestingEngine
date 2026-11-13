@@ -6,32 +6,56 @@ from portfolio import Trade
 # Compute money gained/lost on a round-trip trade
 def round_trips(trades: list[Trade]):
     results = []
-    shares = 0.0
-    cost = 0.0
+
+    # Track when a position is opened, realized gains, cost of shares, and share count
+    shares, cost, opened, proceeds = {}, {}, {}, {}
 
     for trade in trades:
+        ticker = trade.ticker
+
         if trade.trade_type == 'BUY':
-            # When shares were purchased add shares and cost to respective totals
-            shares += trade.quantity
-            cost += trade.quantity * trade.price
+            # Check if a position for the current ticker is currently open, if not initialize the values for current ticker
+            if shares.get(ticker, 0.0) < 1e-9:
+                shares[ticker], cost[ticker], proceeds[ticker] = 0.0, 0.0, 0.0
+                opened[ticker] = trade.timestamp
+            
+            # Record # of shares purchased and cost
+            shares[ticker] += trade.quantity
+            cost[ticker] += trade.quantity * trade.price + trade.commission
         else:
             # When selling shares, calculate profit/loss on a trade
-            # Average cost per share
-            avg_cost = cost / shares
+            # Average cost per share of current ticker
+            avg_cost = cost[ticker] / shares[ticker]
 
             # Subtract price payed for the shares being sold to keep average cost per share the same
-            cost -= trade.quantity * avg_cost
+            cost[ticker] -= trade.quantity * avg_cost
 
             # Calculate money gained for shares sold
-            proceeds = trade.quantity * trade.price - trade.commission
-
-            # Add profit/loss for round-trip trade
-            results.append(proceeds - avg_cost * trade.quantity)
+            proceeds[ticker] = trade.quantity * trade.price - trade.commission - avg_cost * trade.quantity
 
             # Subtract shares sold from total
-            shares -= trade.quantity
+            shares[ticker] -= trade.quantity
 
-    return results
+            # If all shares of the ticker are sold, add a dict with timestamps and profit/loss for round-trip trade
+            if shares[ticker] < 1e-9:
+                results.append({'ticker': ticker, 'opened': opened[ticker], 'closed': trade.timestamp, 'pnl': proceeds[ticker]})
+
+    # Return results of round-trip trades as a DataFrame
+    return pd.DataFrame(results)
+
+# Function to return a Series with overall profit-and-loss for each ticker in the portfolio
+def summarize_pnl(pnl):
+    wins, losses = pnl[pnl > 0], pnl[pnl <= 0]
+
+    return pd.Series({
+        'Round-Trips:': len(pnl),
+        'Win Rate:': len(wins) / len(pnl),
+        'Average Win': wins.mean(),
+        'Average Loss': losses.mean(), 
+        'Profit Factor': (wins.sum() / abs(losses.sum()) if len(losses) and losses.sum() != 0 else float('nan')), 
+    })
+
+
 
 # risk_free_rate is the annual return rate of a zero-risk investment such as treasury bills
 def compute_metrics(equity: pd.Series, periods_per_year: int = 252, risk_free_rate: float = 0.0) -> dict:
