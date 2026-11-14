@@ -8,7 +8,7 @@ def round_trips(trades: list[Trade]):
     results = []
 
     # Track when a position is opened, realized gains, cost of shares, and share count
-    shares, cost, opened, proceeds = {}, {}, {}, {}
+    shares, cost, opened, realized = {}, {}, {}, {}
 
     for trade in trades:
         ticker = trade.ticker
@@ -16,7 +16,7 @@ def round_trips(trades: list[Trade]):
         if trade.trade_type == 'BUY':
             # Check if a position for the current ticker is currently open, if not initialize the values for current ticker
             if shares.get(ticker, 0.0) < 1e-9:
-                shares[ticker], cost[ticker], proceeds[ticker] = 0.0, 0.0, 0.0
+                shares[ticker], cost[ticker], realized[ticker] = 0.0, 0.0, 0.0
                 opened[ticker] = trade.timestamp
             
             # Record # of shares purchased and cost
@@ -31,14 +31,14 @@ def round_trips(trades: list[Trade]):
             cost[ticker] -= trade.quantity * avg_cost
 
             # Calculate money gained for shares sold
-            proceeds[ticker] = trade.quantity * trade.price - trade.commission - avg_cost * trade.quantity
+            realized[ticker] += trade.quantity * trade.price - trade.commission - avg_cost * trade.quantity
 
             # Subtract shares sold from total
             shares[ticker] -= trade.quantity
 
             # If all shares of the ticker are sold, add a dict with timestamps and profit/loss for round-trip trade
             if shares[ticker] < 1e-9:
-                results.append({'ticker': ticker, 'opened': opened[ticker], 'closed': trade.timestamp, 'pnl': proceeds[ticker]})
+                results.append({'ticker': ticker, 'opened': opened[ticker], 'closed': trade.timestamp, 'pnl': realized[ticker]})
 
     # Return results of round-trip trades as a DataFrame
     return pd.DataFrame(results)
