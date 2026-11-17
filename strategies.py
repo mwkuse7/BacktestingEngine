@@ -58,3 +58,23 @@ class SMACrossover(Strategy):
 
         # Return None if moving averages cannot be calculated due to insufficient data
         return weights or None
+
+# Trend Following Strategy
+# Buy when current price > 200 day average, otherwise sell shares
+# Produces smaller drawdown during crash
+class TrendFollowing(Strategy):
+    def __init__(self, window = 200):
+        self.window = window
+
+    def on_bar(self, history, portfolio):
+        weights = {}
+
+        for ticker, df in history.items():
+            if len(df) < self.window:
+                continue
+            close = df['Close']
+
+            # Return 1.0 if current tickers price > 200 day average
+            weights[ticker] = 1.0 if close.iloc[-1] > close[-self.window :].mean() else 0.0
+        
+        return weights or None
