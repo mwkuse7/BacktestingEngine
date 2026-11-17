@@ -10,6 +10,19 @@ class Strategy(ABC):
     def on_bar(self, history: dict[str, pd.DataFrame], portfolio) -> dict[str, float] | None:
         pass
 
+# Helper class for strategies that rebalance portfolio on monthly basis mitigating transaction costs
+class MonthlyTrigger:
+    def __init__(self):
+        self._last = None
+
+    # Check will return True on the 1st of each month
+    def check_month(self, timestamp) -> bool:
+        month = (timestamp.year, timestamp.month)
+        if month == self._last:
+            return False
+
+        self._last = month
+        return True
 
 # Simple Moving Average Crossover Strategy
 # Buy when the short-term moving average crosses above the long-term moving average
