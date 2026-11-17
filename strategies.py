@@ -78,3 +78,37 @@ class TrendFollowing(Strategy):
             weights[ticker] = 1.0 if close.iloc[-1] > close[-self.window :].mean() else 0.0
         
         return weights or None
+
+class MomentumRotation(Strategy):
+    # lookback: how many trading days to measure performance over
+    # skip: leaves one month of trading days to account for volatility
+    # top_n: how many positions to hold at a time
+    def __init__(self, lookback = 252, skip = 21, top_n = 2):
+        self.lookback, self.skip, self.top_n = lookback, skip, top_n
+        self.trigger = MonthlyTrigger()
+
+    def on_bar(self, history, portfolio):
+        # Only rotate holdings once a month
+        if not self.trigger.check_month(current_datetime(history)):
+            return None
+
+        scores = {}
+        for ticker, df in history.items():
+            # Don't execute trades until there is one year of history for the ticker
+            if len(df) < self.lookback + 1:
+                continue
+
+            close = df['Close']
+            
+            # Calculate momentum score for current ticker, leaving out current month due to bounce-back
+            scores[ticker] = close.iloc[-1 - self.skip] / close.iloc[-1 - self.lookback] - 1
+
+        # If no ticker has enough history, strategy cannot decide
+        if not scores:
+            return None
+
+        # Sort tickers by momentum score, keeping only top_n tickers, ignore negative momentum scores
+        winners = [s for s in sorted(scores, key = scores.get, reverse = True)[:self.top_n] if scores[s] > 0]
+
+        # Split investment weight across top_n winning positions, others positions moved to cash 
+        return {s: (1.0 / self.top_n if s in winners else 0.0) for s in history}
