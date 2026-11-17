@@ -24,6 +24,10 @@ class MonthlyTrigger:
         self._last = month
         return True
 
+# Helper function to return current date for the first ticker in the history dictionary
+def current_datetime(history):
+    return next(iter(history.values())).index[-1]
+
 # Simple Moving Average Crossover Strategy
 # Buy when the short-term moving average crosses above the long-term moving average
 # Sell when the short-term moving average crosses below the long-term moving average
