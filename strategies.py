@@ -79,6 +79,9 @@ class TrendFollowing(Strategy):
         
         return weights or None
 
+# 12-1 Momentum Strategy
+# Calculate winning positions over the last year, disregarding the last month due to bounceback trends, and split investment weight
+# over top_n tickers with the largest gains over that period
 class MomentumRotation(Strategy):
     # lookback: how many trading days to measure performance over
     # skip: leaves one month of trading days to account for volatility
