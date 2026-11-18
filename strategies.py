@@ -115,17 +115,54 @@ class MomentumRotation(Strategy):
 
         # Split investment weight across top_n winning positions, others positions moved to cash 
         return {s: (1.0 / self.top_n if s in winners else 0.0) for s in history}
+    
+# Mean Reversion Strategy
+# Buy when a stock has a short-term drop and a long-term uptrend expecting bounceback (low 2-day RSI and price above the 200 day average)
+# Sell when the price recovers from the drop and is above the short term average
+class RSIMeanReversion(Strategy):
+    def __init__(self, rsi_window = 2, entry = 10, exit_window = 5, trend_window = 200):
+        self.rsi_window, self.entry = rsi_window, entry
+        self.exit_window, self.trend_window = exit_window, trend_window
 
-# Function to calculate Relative Strength Index, by comparing average gains to average losses over a 14-day period
-def calculate_rsi(close, n):
-    # Calculate daily price change on close
-    delta = close.diff()
+    # Function to calculate Relative Strength Index, by comparing average gains to average losses over n days
+    def calculate_rsi(close, n):
+        # Calculate daily price change on close
+        delta = close.diff()
 
-    # Calculate average gain and average loss
-    # Replace all negative daily changes with 0, averaging gains over last n days
-    gain = delta.clip(lower=0).rolling(n).mean()
-    # Replace all positive daily changes with 0, averaging losses over last n days
-    loss = delta.clip(upper=0).rolling(n).mean()
+        # Calculate average gain and average loss
+        # Replace all negative daily changes with 0, averaging gains over last n days
+        gain = delta.clip(lower=0).rolling(n).mean()
+        # Replace all positive daily changes with 0, averaging losses over last n days
+        loss = (-delta.clip(upper=0)).rolling(n).mean()
 
-    # Calculate relative strength and place on scale (0-100)
-    return 100 - 100 / (1 + gain / loss)
+        # Calculate a pandas Series of RSI values on scale (0-100)
+        return 100 - 100 / (1 + gain / loss)
+
+    def on_bar(self, history, portfolio):
+        # Give each ticker an equal portion of the portfolio
+        size = 1.0 / len(history)
+        weights = {}
+
+        for ticker, df in history.items():
+            # Skip until enough bars to calculate trend average (200 days by default)
+            if len(df) < self.trend_window:
+                continue
+
+            close = df['Close']
+            
+            # Check if any shares of current ticker are held
+            if portfolio.shares[ticker] > 0:
+                # if current day's close price > average of last 5 closes then trigger sell, otherwise hold
+                recovered = close.iloc[-1] > close.iloc[-self.exit_window:].mean()
+                weights[ticker] = 0.0 if recovered else size
+            else:
+                # No shares of ticker currently held
+                # Check if current close price > trend average (average price over 200 days)
+                uptrend = close.iloc[-1] > close.iloc[-self.trend_window :].mean()
+
+                # Calculate RSI for last rsi_window days, RSI < 10 indicates stock is oversold
+                oversold = self.calculate_rsi(close.iloc[-(self.rsi_window + 1) :], self.rsi_window).iloc[-1] < self.entry
+
+                weights[ticker] = size if (uptrend and oversold) else 0.0
+
+        return weights or None
