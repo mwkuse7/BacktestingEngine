@@ -115,3 +115,17 @@ class MomentumRotation(Strategy):
 
         # Split investment weight across top_n winning positions, others positions moved to cash 
         return {s: (1.0 / self.top_n if s in winners else 0.0) for s in history}
+
+# Function to calculate Relative Strength Index, by comparing average gains to average losses over a 14-day period
+def calculate_rsi(close, n):
+    # Calculate daily price change on close
+    delta = close.diff()
+
+    # Calculate average gain and average loss
+    # Replace all negative daily changes with 0, averaging gains over last n days
+    gain = delta.clip(lower=0).rolling(n).mean()
+    # Replace all positive daily changes with 0, averaging losses over last n days
+    loss = delta.clip(upper=0).rolling(n).mean()
+
+    # Calculate relative strength and place on scale (0-100)
+    return 100 - 100 / (1 + gain / loss)
