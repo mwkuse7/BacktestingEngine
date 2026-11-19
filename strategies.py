@@ -229,3 +229,18 @@ class InverseVolatility(Strategy):
         # Rescale weights to add to 1.0 (total portfolio size)
         total = sum(inverse_volatility.values())
         return {t: w / total for t, w in inverse_volatility.items()} if total else None
+
+# Equal Weight Rebalancing Strategy (Baseline)
+# Splits portfolio equally across all tickers, and trades back into equal weights monthly
+class EqualWeightRebalance(Strategy):
+    def __init__(self):
+        self.trigger = MonthlyTrigger()
+
+    def on_bar(self, history, portfolio):
+        # Only rebalance portfolio once a month
+        if not self.trigger.check_month(current_datetime(history)):
+            return None
+
+        # Split weight evenly across all tickers in portfolio
+        return {t: 1.0 / len(history) for t in history}
+        
