@@ -166,3 +166,36 @@ class RSIMeanReversion(Strategy):
                 weights[ticker] = size if (uptrend and oversold) else 0.0
 
         return weights or None
+
+# Breakout Strategy
+# Buy when price rises above highest price of entry_window days (55 by default)
+# Sell when price falls belove lowest price of exit_window days (20 by default)
+# Invests in strong moves, and sells quickly when price fades
+class Breakout(Strategy):
+    def __init__(self, entry_window = 55, exit_window = 20):
+        self.entry_window, self.exit_window = entry_window, exit_window
+
+    def on_bar(self, history, portfolio):
+        # Each ticker gets equal portion of portfolio
+        size = 1.0 / len(history)
+        weights = {}
+
+        for ticker, df in history.items():
+            # Skip until entry_window days of price history
+            if len(df) < self.entry_window:
+                continue
+
+            # Current day closing price
+            close = df['Close'].iloc[-1]
+
+            if portfolio.shares[ticker] > 0:
+                # Check if current price < lowest price in previous exit_window days, if true trigger sell
+                broke_down = close < df['Low'].iloc[-self.exit_window - 1 : -1].min()
+                weights[ticker] = 0.0 if broke_down else size
+            else:
+                # Check if current price > highest high in previous entry_window days, if true trigger buy
+                breakout = close > df['High'].iloc[-self.entry_window - 1 : -1].max()
+                weights[ticker] = 1.0 if breakout else 0.0
+
+        return weights or None
+
