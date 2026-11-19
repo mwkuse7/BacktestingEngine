@@ -167,7 +167,7 @@ class RSIMeanReversion(Strategy):
 
         return weights or None
 
-# Breakout Strategy
+# Breakout (Donchian) Strategy
 # Buy when price rises above highest price of entry_window days (55 by default)
 # Sell when price falls belove lowest price of exit_window days (20 by default)
 # Invests in strong moves, and sells quickly when price fades
@@ -199,3 +199,33 @@ class Breakout(Strategy):
 
         return weights or None
 
+# Inverse Volatility Strategy
+# Invest more cash in less volatile positions, so each asset holds a similar amount of risk
+# window: how many days of returns to measure volatility of a position over
+class InverseVolatility(Strategy):
+    def __init__(self, window=60):
+        self.window = window
+        self.trigger = MonthlyTrigger()
+
+    def on_bar(self, history, portfolio):
+        # Rebalance portfolio once per month
+        if not self.trigger.check_month(current_datetime(history)):
+            return None
+
+        inverse_volatility = {}
+
+        for ticker, df in history.items():
+            # Skip until self.window days of price history
+            if len(df) <= self.window:
+                continue
+
+            # Take the standard deviation of return percentages over the last self.window days (daily volatility)
+            volatility = df['Close'].iloc[-(self.window + 1) :].pct_change().dropna().std()
+
+            if volatility > 0:
+                # Give less volatile stocks a larger share of the portfolio (inverse volatility)
+                inverse_volatility[ticker] = 1.0 / volatility
+
+        # Rescale weights to add to 1.0 (total portfolio size)
+        total = sum(inverse_volatility.values())
+        return {t: w / total for t, w in inverse_volatility.items()} if total else None
