@@ -1,0 +1,4 @@
+# Example tickers_file for use with the BacktestEngine
+AAPL
+VOO
+NVDA
