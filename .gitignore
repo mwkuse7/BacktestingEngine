@@ -4,3 +4,4 @@ venv/
 
 # Ignore cached Python files and modules
 __pycache__/
+.pytest_cache
