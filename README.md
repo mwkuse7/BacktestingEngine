@@ -1,0 +1,2 @@
+# Backtesting Engine
+An event-driven backtesting engine written in Python for testing stock trading strategies on historical data provided by the yfincance package and the Yahoo Finance API. Give it a list of stock tickers, choose a strategy, and it replays the historical market data one day at a time, simulates realistic fills with slippage at commission rates, and reports the strategy's performance compared to a buy-and-hold strategy as a benchmark.
