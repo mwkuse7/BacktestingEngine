@@ -129,14 +129,24 @@ def main():
         'Buy-and-Hold': compute_metrics(buy_hold), 
     }).round(3)
 
+    # Portfolio Details
+    print(f'\nTickers: {", ".join(tickers)}')
+    print(f'Period: {history.index[0].date()} to {history.index[-1].date()} ({len(history)} bars)')
+    print(f'Starting Cash: ${cash:,.0f}\n')
+
     print(results)
 
     print()
 
     # Trading activity details
     trade_counts = pd.Series([trade.ticker for trade in engine.portfolio.trades]).value_counts()
-    print('Trades per Ticker:', trade_counts)
-    print('Time in market:', round((positions > 0).mean(), 3))
+    print('Trades per Ticker:')
+    print(trade_counts.to_string())
+
+    print()
+
+    print('Time in market:')
+    print(round((positions > 0).mean(), 3).to_string())
 
     print()
 
@@ -144,8 +154,9 @@ def main():
     trips = round_trips(engine.portfolio.trades)
 
     if not trips.empty: 
-        print(summarize_pnl(trips['pnl']).round(3))
-        print(trips.groupby('ticker')['pnl'].apply(summarize_pnl).unstack().round(3))
+        print(summarize_pnl(trips['pnl']).round(3).to_string())
+        print()
+        print(trips.groupby('Ticker')['pnl'].apply(summarize_pnl).unstack().round(3))
 
     # Create blank chart (10 x 5) w/ one set of axes
     fig, ax = plt.subplots(figsize=(10, 5))

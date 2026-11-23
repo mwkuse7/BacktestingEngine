@@ -38,7 +38,7 @@ def round_trips(trades: list[Trade]):
 
             # If all shares of the ticker are sold, add a dict with timestamps and profit/loss for round-trip trade
             if shares[ticker] < 1e-9:
-                results.append({'ticker': ticker, 'opened': opened[ticker], 'closed': trade.timestamp, 'pnl': realized[ticker]})
+                results.append({'Ticker': ticker, 'opened': opened[ticker], 'closed': trade.timestamp, 'pnl': realized[ticker]})
 
     # Return results of round-trip trades as a DataFrame
     return pd.DataFrame(results)
