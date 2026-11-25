@@ -25,3 +25,43 @@ On every bar, the backtesting engine runs these three steps in order:
 Strategies don't execute orders directly. They return a dictionary of target weights (0.0 to 1.0), or the fraction of total portfolio equity they want in each position.
 
 The broker (broker.py) then attempts to produce the trades needed to reflect the target weights. The weights are clamped within a range of 0.0 to 1.0, and if the weights add up to more than 1.0, they are scaled down proportionally. Sells, signaled by a weight of 0.0, are executed before buys, so selling one asset can fund the buy of another on the same bar.
+
+## Getting Started
+**Requirements**: Python 3.10 or newer
+
+**1. Install Project Dependencies**
+```
+pip install -r requirements.txt
+```
+**2. Create a file with the desired stock tickers**
+
+A plain text file with one or more ticker symbols per line. Blank lines, comments using #, and commas and/or spaces between tickers are fine.
+```
+# tickers.txt
+# US Stocks
+SPY
+QQQ
+# Bonds & Gold
+TLT, GLD
+```
+
+**3. Run it**
+```
+bash
+python run.py tickers.txt
+```
+**4. Answer prompts**
+```
+Select a strategy:
+  1. Simple-Moving-Average Crossover
+  2. Trend Following
+  3. Momentum Rotation
+  4. Relative Strength Index Mean Reversion
+  5. Breakout
+  6. Inverse Volatility
+  7. Equal Weight Rebalancing
+Enter a number (1-7): 3
+Starting cash: [100,000]
+```
+* The strategy prompt repeats until you enter a valid number.
+* The cash prompt accepts a variety of formats: 50000, 50,000, or $50,000. Press enter to accept the default ($100,000)
