@@ -33,7 +33,7 @@ The broker (broker.py) then attempts to produce the trades needed to reflect the
 ```
 pip install -r requirements.txt
 ```
-**2. Create a file with the desired stock tickers**
+**2. Create a File with the Desired Stock Tickers**
 
 A plain text file with one or more ticker symbols per line. Blank lines, comments using #, and commas and/or spaces between tickers are fine.
 ```
@@ -45,12 +45,12 @@ QQQ
 TLT, GLD
 ```
 
-**3. Run it**
+**3. Run It**
 ```
 bash
 python run.py tickers.txt
 ```
-**4. Answer prompts**
+**4. Answer Prompts**
 ```
 Select a strategy:
   1. Simple-Moving-Average Crossover
@@ -77,6 +77,16 @@ All strategies use the same interface and run using either a single ticker or mu
 | 5 | Breakout (Donchian) Strategy | Buy when the price rises above the highest price of entry_window days (55 by default). Sell when the price falls below the lowest price of exit_window days (20 by default). Invests in strong moves and sells quickly when price fades. | entry_window = 55, exit_window = 20 |
 | 6 | Inverse Volatility | Invest more cash in less volatile positions, so each asset holds a similar amount of risk. | window = 60 |
 | 7 | Equal Weight Rebalancing | Splits portfolio equally across all tickers, and trades back into equal weights monthly. | None |
+
+## Performance Metrics
+| Metric | Description |
+|--------|-------------|
+| Total Return | Final equity divided by starting equity, minus 1. A value of 1.1 means the portfolio grew 110%. |
+| Compound Annual Growth Rate (CAGR) | The steady annual growth rate that would produce the total return. Useful for comparing tests of different lengths. |
+| Volatility | Annualized standard deviation of daily returns. The daily standard deviation multiplied by the square root of 252. |
+| Sharpe Ratio | Average excess return over the risk-free rate, per unit of volatility, annualized. A value of 0.5 and below is considered weak, a value of around 1.0 is decent, and a value above 2.0 is great, but worth checking for mistakes. |
+| Max Drawdown | The largest drop in value from highest peak to lowest trough before a new peak is reached. |
+| Time in Market | The fraction of bars with at least one open position, per ticker. |
 
 
 
