@@ -88,5 +88,19 @@ All strategies use the same interface and run using either a single ticker or mu
 | Max Drawdown | The largest drop in value from highest peak to lowest trough before a new peak is reached. |
 | Time in Market | The fraction of bars with at least one open position, per ticker. |
 
+## Testing
+```
+bash
+pytest -v
+```
+The suite uses a small, hand-built price series where you can work out the correct answers by hand.
+* Orders are executed at the **next bar's open**, not the bar that generated the buy/sell/hold signal.
+* Flat prices with zero cost leave equity unchanged, and costs reduce it.
+* Weights above 100% are scaled down and divided amongst tickers.
+* Sells are executed before buys, so a rotation is fully funded.
+* When timestamps don't line up between tickers, the misaligned dates are dropped.
+* No lookahead bias means the results for the first N bars are identical whether or not later data exists.
+* Round trips are tracked per ticker, and partial sells collapse into a single round-trip
+* Tests use zero transaction costs from the broker.
 
 
