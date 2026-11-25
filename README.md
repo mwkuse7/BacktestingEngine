@@ -65,3 +65,18 @@ Starting cash: [100,000]
 ```
 * The strategy prompt repeats until you enter a valid number.
 * The cash prompt accepts a variety of formats: 50000, 50,000, or $50,000. Press enter to accept the default ($100,000)
+
+## Included Strategies
+All strategies use the same interface and run using either a single ticker or multiple. Parameters are constructors with the following defaults:
+| # | Strategy | Description | Defaults |
+|---|----------|-------------|----------|
+| 1 | Simple-Moving-Average Crossover | Buy when the short-term moving average crosses above the long-term moving average. Sell when the short-term moving average crosses below the long-term moving average. | short_window = 20, long_window = 50 |
+| 2 | Trend Following | Buy when current price > 200 day average, otherwise sell shares. This strategy produces a smaller drawdown during a crash | window = 200 |
+| 3 | Momentum Rotation | Calculates winning positions over the last year, disregarding the last month due to bounceback trends, and splits investment weight over top_n tickers with the largest gains over that period | lookback = 252, skip = 21, top_n = 2 |
+| 4 | Relative Strength Index Mean Reversion | Buy when a stock has a short-term drop and a long-term uptrend, expecting a bounceback (low 2-day RSI and price above the 200-day average). Sell when the price recovers from the drop and is above the short-term average. | rsi_window = 2, entry = 10, exit_window = 5, trend_window = 200 |
+| 5 | Breakout (Donchian) Strategy | Buy when the price rises above the highest price of entry_window days (55 by default). Sell when the price falls below the lowest price of exit_window days (20 by default). Invests in strong moves and sells quickly when price fades. | entry_window = 55, exit_window = 20 |
+| 6 | Inverse Volatility | Invest more cash in less volatile positions, so each asset holds a similar amount of risk. | window = 60 |
+| 7 | Equal Weight Rebalancing | Splits portfolio equally across all tickers, and trades back into equal weights monthly. | None |
+
+
+
